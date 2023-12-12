@@ -7,7 +7,7 @@ import { SidebarData } from "./SidebarData";
 import "./Navbar.css";
 import { IconContext } from "react-icons";
 import ProfileAndName from "./ProfileAndName/ProfileAndName";
-
+import SignUp from "../Registration/SignUp";
 function Navbar() {
   const [sidebar, setSidebar] = useState(false);
 
@@ -23,9 +23,17 @@ function Navbar() {
         </Link>
         <Link to="/" className="logo">
           <FaHouseChimney className="logo-img" />
-          Cheep Delala
+         Cheep Delala</Link>
+
+        <Link to="/signup" >
+        <div className="nav-sign-up">
+            <h5>SIGN UP</h5>
+        </div>
         </Link>
+        
       </div>
+
+        
       <nav className={sidebar ? "nav-menu active" : "nav-menu"}>
         <ul className="nav-menu-items" onClick={showSidebar}>
           {SidebarData.map((item, index) => {

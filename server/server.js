@@ -1,106 +1,97 @@
 const express = require("express");
 const app = express();
-const bodyParser = require("body-parser");
 const cors = require("cors");
-const mongoose = require("mongoose");
+const mongoose = require('mongoose')
+const bodyParser = require('body-parser');
 
 app.use(cors());
-app.use(bodyParser.json({ limit: "10mb" }));
-app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
+app.use(express.json())
 
-mongoose.connect("mongodb://127.0.0.1:27017/postDB");
+mongoose.connect("mongodb://127.0.0.1:27017/store", {useNewUrlParser: true,
+useUnifiedTopology: true, }).then(() => {
+  console.log("Connected to MongoDB");
 
-// const postSchema = new mongoose.Schema({
-//   title: String,
-//   price: String,
-//   imgUrl: String,
-// });
 
-const messageSchema = new mongoose.Schema({
-  sender: String,
-  receiver: String,
-  message: [
-    {
-      text: String,
-      time: String,
-      direction: String,
-    },
-  ],
-});
+  const messageSchema = new mongoose.Schema({
+    sender: String,
+    receiver: String,
+    message: [
+      {
+        text: String,
+        time: String,
+        direction: String,
+      },
+    ],
+  });
+  
+  const postSchema = new mongoose.Schema({
+    title: String,
+    for: String,
+    bedrooms: String,
+    area: String,
+    location: String,
+    description: String,
+    price: String,
+    uploadedImgs: [String],
+  });
+  
+  const Postt = mongoose.model("Postt", postSchema);
+  const Message = mongoose.model("Message", messageSchema);
 
-const postSchema = new mongoose.Schema({
-  title: String,
-  for: String,
-  bedrooms: String,
-  area: String,
-  location: String,
-  description: String,
-  price: String,
-  uploadedImgs: [String],
-});
 
-const Postt = mongoose.model("Postt", postSchema);
-const Message = mongoose.model("Message", messageSchema);
 
-// const post1 = new Post({
-//   title: "Modern House",
-//   price: "32,000,000",
-//   imgUrl:
-//     "https://thumbs.dreamstime.com/b/modern-house-interior-exterior-design-46517595.jpg",
-// });
 
-// post1
-//   .save()
-//   .then(() => {
-//     console.log("posted successfully!");
-//   })
-//   .catch(() => {
-//     console.log("Errrror");
-//   });
 
-// Message.updateOne(
-//   { _id: "6575102f08a5593991b12221" },
-//   {
-//     $push: {
-//       message: {
-//         text: "ewnethn new ipsum lorem ychalal",
-//         time: "11:59",
-//         direction: "sent",
-//       },
-//     },
-//   }
-// )
-//   .then((result) => {
-//     console.log("Updated", result);
-//   })
-//   .catch((error) => {
-//     console.log("Error Updating", error);
-//   });
 
-// const message = new Message({
-//   sender: "Abebe Abamecha",
-//   receiver: "Abdi Ahmed",
-//   message: {
-//     text: "Abdi Ahmed, lorem lorem endet ipsum?",
-//     time: "01:58",
-//     direction: "received",
-//   },
-// });
 
-// message
-//   .save()
-//   .then(() => {
-//     console.log("Message saved successfully");
-//   })
-//   .catch(() => {
-//     console.log("Erororo");
-//   });
+
+  const userSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    password: { type: String, required: true },
+    confirmation: { type: String, required: true },
+    phoneNu: { type: String, required: false },
+    location: { type: String, required:false },
+    additional_info: {
+           profile_pic_url: String,
+           bio: String,
+           username: String,
+          location: String,
+      
+       }
+  });
+
+  const User = mongoose.model("User", userSchema);
+
 
 app.get("/", (req, res) => {
   res.send("Hello from our server");
 });
+app.get("/test", (req, res) => {
+  res.send("Hello from test route");
+});
+
+
+app.post("/userData", (req, res) => {
+  const userInfo = req.body;
+  console.log(userInfo);
+  const newUser = new User(userInfo);
+
+ newUser.save().then(() => {
+  console.log("user saved to the database successfully")
+  res.status(200).json({ message: 'Data received successfully' });
+  
+ }).catch((error) => {
+  console.log("Error saving user:", error);
+  res.status(500).json({ error: "An error occurred while saving the user" })
+ })
+  
+})
+
+
+
+
+
 app.post("/post", (req, res) => {
   const submittedInfo = req.body;
   // Process the submittedInfo data as needed
@@ -153,6 +144,33 @@ app.get("/messages/:sender/:receiver", (req, res) => {
   });
 });
 
+app.post("/login", function(req, res) {
+  const userInputedEmail = req.body.email;
+  const userInputedPassword = req.body.password;
+
+  User.findOne({ email: userInputedEmail })
+    .then((foundUser) => {
+      if (foundUser) {
+        if (foundUser.password === userInputedPassword) {
+          res.status(200).json({ message: 'Login successful' });
+        } else {
+          res.status(401).json({ error: 'Invalid password' });
+        }
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
+    })
+    .catch((error) => {
+      console.error('Error finding user:', error);
+      res.status(500).json({ error: 'An error occurred while finding the user' });
+    });
+});
+
+
+
 app.listen(8080, () => {
   console.log("Server listening on port 8080");
+});
+}).catch((error) => {
+  console.error("Error connecting to MongoDB:", error);
 });
